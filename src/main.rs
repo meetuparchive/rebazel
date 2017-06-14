@@ -2,11 +2,11 @@ extern crate notify;
 #[macro_use]
 extern crate error_chain;
 
-use std::path::PathBuf;
 use notify::{RecommendedWatcher, Watcher, RecursiveMode};
 use notify::DebouncedEvent::{Write, Remove, Rename};
 use std::env;
 use std::io::{self, Write as IOWrite};
+use std::path::PathBuf;
 use std::process::Command;
 use std::sync::mpsc::channel;
 use std::time::Duration;
@@ -52,12 +52,15 @@ fn watchable(path: &str) -> bool {
 
 #[inline]
 fn buildfile(path: PathBuf) -> bool {
- path.ends_with("BUILD") ||
-                            path.extension().iter().find(|ext| **ext == "bzl").is_some()
+    path.ends_with("BUILD") || path.extension().iter().find(|ext| **ext == "bzl").is_some()
 }
 
 fn query(executable: &String, q: String) -> Result<Vec<String>> {
-    let query = Command::new(executable).arg("query").arg(q).output().unwrap();
+    let query = Command::new(executable)
+        .arg("query")
+        .arg(q)
+        .output()
+        .unwrap();
     let stdout = String::from_utf8_lossy(&query.stdout);
     let stderr = String::from_utf8_lossy(&query.stderr);
     println!("{}", stderr);
@@ -70,11 +73,17 @@ fn query(executable: &String, q: String) -> Result<Vec<String>> {
 }
 
 fn sources(executable: &String, target: &String) -> Result<Vec<String>> {
-    query(executable, format!("kind('source file', deps(set({target})))", target = target))
+    query(
+        executable,
+        format!("kind('source file', deps(set({target})))", target = target),
+    )
 }
 
 fn builds(executable: &String, target: &String) -> Result<Vec<String>> {
-    query(executable, format!("buildfiles(deps(set({target})))", target = target))
+    query(
+        executable,
+        format!("buildfiles(deps(set({target})))", target = target),
+    )
 }
 
 fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<()> {
@@ -82,19 +91,23 @@ fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-fn watch(executable: &String, targets: Vec<&String>, watcher: &mut RecommendedWatcher) -> Result<()> {
+fn watch(
+    executable: &String,
+    targets: Vec<&String>,
+    watcher: &mut RecommendedWatcher,
+) -> Result<()> {
     let stderr = io::stderr();
     let mut lock = stderr.lock();
     for target in targets {
         for file in sources(&executable, &target)? {
-            writeln!(lock, "watching src: {file}", file=file)?;
+            writeln!(lock, "watching src: {file}", file = file)?;
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
         for file in builds(&executable, &target)? {
-            writeln!(lock, "watching build: {file}", file=file)?;
+            writeln!(lock, "watching build: {file}", file = file)?;
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
-        println!("watching {target} dependencies...", target=target)
+        println!("watching {target} dependencies...", target = target)
     }
     Ok(())
 }
