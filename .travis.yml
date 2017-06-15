@@ -1,0 +1,65 @@
+dist: trusty
+language: rust
+services: docker
+sudo: required
+
+rust: stable
+
+branches:
+  only:
+    # release tags
+    - /^v\d+\.\d+\.\d+.*$/
+    - master
+
+env:
+  global:
+    - CRATE_NAME=rebazel
+    - TARGET=x86_64-unknown-linux-musl
+    - OS=Linux
+    - ARCH=x86_64
+
+matrix:
+  include:
+    - env: TARGET=x86_64-apple-darwin OS=Darwin ARCH=x86_64
+      os: osx
+
+install:
+  - sh ci/install.sh
+  - source ~/.cargo/env || true
+
+script:
+  - bash ci/script.sh
+
+before_cache:
+  # Travis can't cache files that are not readable by "others"
+  - chmod -R a+r $HOME/.cargo
+
+cache:
+  cargo: true
+  apt: true
+  directories:
+  - target/debug/deps
+  - target/debug/build
+  - "$HOME/.rustup"
+
+before_deploy:
+  - sh ci/before_deploy.sh
+
+deploy:
+  # TODO update `api_key.secure`
+  # - Create a `public_repo` GitHub token. Go to: https://github.com/settings/tokens/new
+  # - Encrypt it: `travis encrypt GH_TOKEN=0123456789012345678901234567890123456789`
+  # - Paste the output down here
+  api_key:
+    secure: $GH_TOKEN
+  file_glob: true
+  file: $CRATE_NAME-$OS-$ARCH.*
+  on:
+    # TODO Here you can pick which targets will generate binary releases
+    # In this example, there are some targets that are tested using the stable
+    # and nightly channels. This condition makes sure there is only one release
+    # for such targets and that's generated using the stable channel
+    condition: $TRAVIS_RUST_VERSION = stable
+    tags: true
+  provider: releases
+  skip_cleanup: true
