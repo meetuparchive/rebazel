@@ -4,5 +4,6 @@ version = "0.1.0"
 authors = ["softprops <d.tangren@gmail.com>"]
 
 [dependencies]
-notify = "4.0.0"
 error-chain = "0.10"
+notify = "4.0"
+term = "0.4"

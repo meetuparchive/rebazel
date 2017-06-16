@@ -1,13 +1,14 @@
 extern crate notify;
 #[macro_use]
 extern crate error_chain;
+extern crate term;
 
 use notify::{RecommendedWatcher, Watcher, RecursiveMode};
 use notify::DebouncedEvent::{Write, Remove, Rename};
 use std::env;
-use std::io::{self, Write as IOWrite};
+use std::io::Write as IOWrite;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Child, Command};
 use std::sync::mpsc::channel;
 use std::time::Duration;
 
@@ -19,6 +20,7 @@ error_chain! {
   foreign_links {
     IO(::std::io::Error);
     Notify(::notify::Error);
+    Term(::term::Error);
   }
 }
 
@@ -72,6 +74,8 @@ fn query(executable: &String, q: String) -> Result<Vec<String>> {
     Ok(lines)
 }
 
+const SOURCES: &str = "kind('source file', deps(set({target})))";
+
 fn sources(executable: &String, target: &String) -> Result<Vec<String>> {
     query(
         executable,
@@ -86,9 +90,11 @@ fn builds(executable: &String, target: &String) -> Result<Vec<String>> {
     )
 }
 
-fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<()> {
-    Command::new(executable).arg(action).args(args).spawn()?;
-    Ok(())
+fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<Child> {
+    Ok(Command::new(executable)
+        .arg(action)
+        .args(args)
+        .spawn()?)
 }
 
 fn watch(
@@ -96,15 +102,20 @@ fn watch(
     targets: Vec<&String>,
     watcher: &mut RecommendedWatcher,
 ) -> Result<()> {
-    let stderr = io::stderr();
-    let mut lock = stderr.lock();
+    let mut t = term::stderr().unwrap();
     for target in targets {
         for file in sources(&executable, &target)? {
-            writeln!(lock, "watching src: {file}", file = file)?;
+            t.fg(term::color::GREEN)?;
+            write!(t, "INFO: ")?;
+            t.reset()?;
+            writeln!(t, "watching source file: {file}", file = file)?;
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
         for file in builds(&executable, &target)? {
-            writeln!(lock, "watching build: {file}", file = file)?;
+            t.fg(term::color::GREEN)?;
+            write!(t, "INFO: ")?;
+            t.reset()?;
+            writeln!(t, "watching build: {file}", file = file)?;
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
         println!("watching {target} dependencies...", target = target)
@@ -118,11 +129,11 @@ fn run() -> Result<()> {
     let delay = Duration::from_millis(
         env::var("DEBOUNCE_DELAY")
             .map(|delay| delay.parse().unwrap())
-            .unwrap_or(100)
+            .unwrap_or(100),
     );
-    let action = env::args()
-        .nth(1)
-        .ok_or::<Error>(ErrorKind::MissingAction.into())?;
+    let action = env::args().nth(1).ok_or::<Error>(
+        ErrorKind::MissingAction.into(),
+    )?;
     let args = env::args().skip(2).collect::<Vec<_>>();
     let targets = args.iter()
                  // skip flags
@@ -130,24 +141,29 @@ fn run() -> Result<()> {
                 .collect::<Vec<_>>();
     let mut watcher: RecommendedWatcher = Watcher::new(tx, delay)?;
     watch(&executable, targets.clone(), &mut watcher)?;
-    exec(&executable, &action, args.clone())?;
+    let mut child = exec(&executable, &action, args.clone())?;
     loop {
         match rx.recv() {
             Ok(ev) => {
                 match ev {
                     Write(path) | Remove(path) | Rename(path, _) => {
-                        println!("{path:?} changed", path = path);
+                        let mut t = term::stdout().unwrap();
+                        t.fg(term::color::GREEN)?;
+                        write!(t, "INFO: ")?;
+                        t.reset()?;
+                        writeln!(t, "changed {path}", path = path.display())?;
+                        let _ = child.kill();
                         if buildfile(path) {
                             // update watch sources if build defs change
                             watch(&executable, targets.clone(), &mut watcher)?
                         }
-                        exec(&executable, &action, args.clone())?;
+                        child = exec(&executable, &action, args.clone())?;
                         ()
                     }
                     _ => (),
                 }
             }
-            Err(e) => println!("err {}", e),
+            Err(e) => println!("error watching files: {}", e),
         }
     }
 }
