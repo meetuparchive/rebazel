@@ -6,11 +6,11 @@ extern crate term;
 use notify::{RecommendedWatcher, Watcher, RecursiveMode};
 use notify::DebouncedEvent::{Write, Remove, Rename};
 use std::env;
-use std::io::Write as IOWrite;
 use std::path::PathBuf;
 use std::process::{Child, Command};
 use std::sync::mpsc::channel;
 use std::time::Duration;
+use term::StderrTerminal;
 
 // generates Result,Error,ErrorKind types as compile time
 error_chain! {
@@ -74,8 +74,6 @@ fn query(executable: &String, q: String) -> Result<Vec<String>> {
     Ok(lines)
 }
 
-const SOURCES: &str = "kind('source file', deps(set({target})))";
-
 fn sources(executable: &String, target: &String) -> Result<Vec<String>> {
     query(
         executable,
@@ -97,6 +95,13 @@ fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<Child
         .spawn()?)
 }
 
+fn info(stderr: &mut StderrTerminal, txt: String) -> Result<()> {
+    stderr.fg(term::color::GREEN)?;
+            write!(stderr, "INFO: ")?;
+            stderr.reset()?;
+    Ok(writeln!(stderr, "{}", txt)?)
+}
+
 fn watch(
     executable: &String,
     targets: Vec<&String>,
@@ -105,17 +110,11 @@ fn watch(
     let mut t = term::stderr().unwrap();
     for target in targets {
         for file in sources(&executable, &target)? {
-            t.fg(term::color::GREEN)?;
-            write!(t, "INFO: ")?;
-            t.reset()?;
-            writeln!(t, "watching source file: {file}", file = file)?;
+            info(&mut *t, format!("watching source file: {file}", file = file))?;
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
         for file in builds(&executable, &target)? {
-            t.fg(term::color::GREEN)?;
-            write!(t, "INFO: ")?;
-            t.reset()?;
-            writeln!(t, "watching build: {file}", file = file)?;
+            info(&mut *t, format!("watching build: {file}", file = file))?;
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
         println!("watching {target} dependencies...", target = target)
@@ -147,11 +146,8 @@ fn run() -> Result<()> {
             Ok(ev) => {
                 match ev {
                     Write(path) | Remove(path) | Rename(path, _) => {
-                        let mut t = term::stdout().unwrap();
-                        t.fg(term::color::GREEN)?;
-                        write!(t, "INFO: ")?;
-                        t.reset()?;
-                        writeln!(t, "changed {path}", path = path.display())?;
+                        let mut t = term::stderr().unwrap();
+                        info(&mut *t, format!("changed {path}", path = path.display()))?;
                         let _ = child.kill();
                         if buildfile(path) {
                             // update watch sources if build defs change
