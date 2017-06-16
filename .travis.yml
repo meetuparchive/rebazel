@@ -46,12 +46,7 @@ before_deploy:
   - sh ci/before_deploy.sh
 
 deploy:
-  # TODO update `api_key.secure`
-  # - Create a `public_repo` GitHub token. Go to: https://github.com/settings/tokens/new
-  # - Encrypt it: `travis encrypt GH_TOKEN=0123456789012345678901234567890123456789`
-  # - Paste the output down here
-  api_key:
-    secure: $GH_TOKEN
+  api_key: $GH_TOKEN
   file_glob: true
   file: $CRATE_NAME-$OS-$ARCH.*
   on:
