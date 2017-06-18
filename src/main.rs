@@ -1,7 +1,9 @@
+extern crate pretty_env_logger;
+#[macro_use]
+extern crate log;
 extern crate notify;
 #[macro_use]
 extern crate error_chain;
-extern crate term;
 
 use notify::{RecommendedWatcher, Watcher, RecursiveMode};
 use notify::DebouncedEvent::{Write, Remove, Rename};
@@ -10,7 +12,6 @@ use std::path::PathBuf;
 use std::process::{Child, Command};
 use std::sync::mpsc::channel;
 use std::time::Duration;
-use term::StderrTerminal;
 
 // generates Result,Error,ErrorKind types as compile time
 error_chain! {
@@ -20,7 +21,6 @@ error_chain! {
   foreign_links {
     IO(::std::io::Error);
     Notify(::notify::Error);
-    Term(::term::Error);
   }
 }
 
@@ -95,29 +95,21 @@ fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<Child
         .spawn()?)
 }
 
-fn info(stderr: &mut StderrTerminal, txt: String) -> Result<()> {
-    stderr.fg(term::color::GREEN)?;
-            write!(stderr, "INFO: ")?;
-            stderr.reset()?;
-    Ok(writeln!(stderr, "{}", txt)?)
-}
-
 fn watch(
     executable: &String,
     targets: Vec<&String>,
     watcher: &mut RecommendedWatcher,
 ) -> Result<()> {
-    let mut t = term::stderr().unwrap();
     for target in targets {
         for file in sources(&executable, &target)? {
-            info(&mut *t, format!("watching source file: {file}", file = file))?;
+            debug!("watching source file: {file}", file = file);
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
         for file in builds(&executable, &target)? {
-            info(&mut *t, format!("watching build: {file}", file = file))?;
+            debug!("watching build file: {file}", file = file);
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
-        println!("watching {target} dependencies...", target = target)
+        info!("watching {target} dependencies...", target = target)
     }
     Ok(())
 }
@@ -146,8 +138,7 @@ fn run() -> Result<()> {
             Ok(ev) => {
                 match ev {
                     Write(path) | Remove(path) | Rename(path, _) => {
-                        let mut t = term::stderr().unwrap();
-                        info(&mut *t, format!("changed {path}", path = path.display()))?;
+                        info!("changed {path}", path = path.display());
                         let _ = child.kill();
                         if buildfile(path) {
                             // update watch sources if build defs change
@@ -165,6 +156,7 @@ fn run() -> Result<()> {
 }
 
 fn main() {
+    pretty_env_logger::init().unwrap();
     if let Err(ref e) = run() {
         use std::io::Write;
         use error_chain::ChainedError; // trait which holds `display`

@@ -5,5 +5,6 @@ authors = ["softprops <d.tangren@gmail.com>"]
 
 [dependencies]
 error-chain = "0.10"
+log = "*"
 notify = "4.0"
-term = "0.4"
+pretty_env_logger = "*"
