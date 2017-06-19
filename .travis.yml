@@ -20,6 +20,7 @@ env:
 
 matrix:
   include:
+    - env: TARGET=x86_64-unknown-linux-musl
     - env: TARGET=x86_64-apple-darwin OS=Darwin ARCH=x86_64
       os: osx
 
