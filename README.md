@@ -4,9 +4,33 @@
 
 ## Installation
 
+`rebazel` can be installed as a standalone binary Darwin and Linux operating systems.
+
+### Github releases
+
+You can download a released binary directly from [Github releases](https://github.com/meetup/rebazel/releases).
+
+Can also download these directly with curl.
+
+```bash
+$ cd $HOME/bin
+$ curl -L "https://github.com/meetup/rebazel/releases/download/v0.0.0/rebazel-$(uname -s)-$(uname -m).tar.gz" \
+  | tar -xz
+```
+
+Ensure `$HOME/bin` is on your `$PATH` variable and you should be good to go
+
+### Homebrew
+
+If you are using OSX, it's likely you're using [homebrew](https://brew.sh/) to manage your packages.
+
+```bash
+$ brew install meetup/tools/rebazel
+```
+
 ## Usage
 
-Just type `rebazel` where you would normally type `bazel`.
+Just type `rebazel` where you would normally type `bazel`. That's it.
 
 `rebazel` will watch the provided target's source and build files for changes and retrigger the action where appropriate.
 
