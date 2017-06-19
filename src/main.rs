@@ -16,7 +16,19 @@ use std::time::Duration;
 // generates Result,Error,ErrorKind types as compile time
 error_chain! {
   errors {
-    MissingAction
+      MissingAction {
+          display(
+              "At least one bazel action is required. Try {} 'build', 'test', or 'run'",
+              env!("CARGO_PKG_NAME")
+          )
+      }
+      MissingTargets {
+          display(
+              "At least one bazel target is required.
+Learn more about specifying a target by visiting
+nhttps://bazel.build/versions/master/docs/bazel-user-manual.html#target-patterns"
+          )
+      }
   }
   foreign_links {
     IO(::std::io::Error);
@@ -89,10 +101,7 @@ fn builds(executable: &String, target: &String) -> Result<Vec<String>> {
 }
 
 fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<Child> {
-    Ok(Command::new(executable)
-        .arg(action)
-        .args(args)
-        .spawn()?)
+    Ok(Command::new(executable).arg(action).args(args).spawn()?)
 }
 
 fn watch(
@@ -129,7 +138,10 @@ fn run() -> Result<()> {
     let targets = args.iter()
                  // skip flags
                 .skip_while(|arg| arg.starts_with("-"))
-                .collect::<Vec<_>>();
+        .collect::<Vec<_>>();
+    if targets.is_empty() {
+        return Err(ErrorKind::MissingTargets.into());
+    }
     let mut watcher: RecommendedWatcher = Watcher::new(tx, delay)?;
     watch(&executable, targets.clone(), &mut watcher)?;
     let mut child = exec(&executable, &action, args.clone())?;
