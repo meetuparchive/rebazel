@@ -1,6 +1,6 @@
 # rebazel [![Build Status](https://travis-ci.org/meetup/rebazel.svg?branch=master)](https://travis-ci.org/meetup/rebazel)
 
-> bazel filewatch triggers
+> a tool for expediting [bazel build](https://bazel.build/) workflows
 
 ## Installation
 
