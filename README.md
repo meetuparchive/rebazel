@@ -36,7 +36,7 @@ Just type `rebazel` where you would normally type `bazel`. That's it.
 `rebazel` will watch the provided target's source and build files for changes and retrigger the action where appropriate.
 
 ```bash
-$ rebazel test --test_filter com.foo.api.* --test_output streamed //foo:test
+$ rebazel test --test_filter=com.foo.api.* --test_output=streamed //foo:test
 ```
 
 Will run the tests for `//foo:test` target and watch all of its associated sources and build dependencies.
