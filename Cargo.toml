@@ -1,10 +1,10 @@
 [package]
 name = "rebazel"
-version = "0.1.0"
+version = "0.0.0"
 authors = ["softprops <d.tangren@gmail.com>"]
 
 [dependencies]
 error-chain = "0.10"
-log = "*"
+log = "0.3"
 notify = "4.0"
-pretty_env_logger = "*"
+pretty_env_logger = "0.1"

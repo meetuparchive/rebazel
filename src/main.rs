@@ -116,9 +116,9 @@ fn watch(
 
 fn run() -> Result<()> {
     let (tx, rx) = channel();
-    let executable = env::var("BAZEL_EXEC").unwrap_or(String::from("bazel"));
+    let executable = env::var("REBAZEL_BAZEL_EXEC").unwrap_or(String::from("bazel"));
     let delay = Duration::from_millis(
-        env::var("DEBOUNCE_DELAY")
+        env::var("REBAZEL_DEBOUNCE_DELAY")
             .map(|delay| delay.parse().unwrap())
             .unwrap_or(100),
     );
@@ -156,6 +156,9 @@ fn run() -> Result<()> {
 }
 
 fn main() {
+    if let Err(_) = env::var("RUST_LOG") {
+        env::set_var("RUST_LOG", "info");
+    }
     pretty_env_logger::init().unwrap();
     if let Err(ref e) = run() {
         use std::io::Write;
