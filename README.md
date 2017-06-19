@@ -10,19 +10,20 @@
 
 You can download a released binary directly from [Github releases](https://github.com/meetup/rebazel/releases).
 
-Can also download these directly with curl.
+You can also download a release directly with curl.
 
 ```bash
 $ cd $HOME/bin
-$ curl -L "https://github.com/meetup/rebazel/releases/download/v0.0.0/rebazel-$(uname -s)-$(uname -m).tar.gz" \
+$ curl -L "https://github.com/meetup/rebazel/releases/download/v0.1.0/rebazel-$(uname -s)-$(uname -m).tar.gz" \
   | tar -xz
 ```
 
-Ensure `$HOME/bin` is on your `$PATH` variable and you should be good to go
+Ensure `$HOME/bin` is on your `$PATH` variable and you should be good to go.
 
 ### Homebrew
 
-If you are using OSX, it's likely you're using [homebrew](https://brew.sh/) to manage your packages.
+If you are using OSX, it's likely you're using [homebrew](https://brew.sh/) to manage your packages. You can install
+rebazel using homebrew with the following command.
 
 ```bash
 $ brew install meetup/tools/rebazel
