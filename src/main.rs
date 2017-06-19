@@ -124,6 +124,34 @@ fn watch(
 }
 
 fn run() -> Result<()> {
+    match env::args().nth(1).unwrap_or(String::new()).as_ref() {
+        "--help" | "help" => help(),
+        "--version" | "version" => version(),
+        _ => app(),
+    }
+}
+
+fn help() -> Result<()> {
+    println!(
+        "{name} v{version}
+a bazel file watch tool
+
+USAGE:
+    rebazel build //pkg:target
+    rebazel test //pkg:target
+    rebazel run //pkg:target",
+        name = env!("CARGO_PKG_NAME"),
+        version = env!("CARGO_PKG_VERSION")
+    );
+    Ok(())
+}
+
+fn version() -> Result<()> {
+    println!("v{}", env!("CARGO_PKG_VERSION"));
+    Ok(())
+}
+
+fn app() -> Result<()> {
     let (tx, rx) = channel();
     let executable = env::var("REBAZEL_BAZEL_EXEC").unwrap_or(String::from("bazel"));
     let delay = Duration::from_millis(
