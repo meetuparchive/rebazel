@@ -101,7 +101,7 @@ fn builds(executable: &String, target: &String) -> Result<Vec<String>> {
 }
 
 fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<Child> {
-    Ok(Command::new(executable).arg(action).args(args).spawn()?)
+    Ok(Command::new(executable).arg(action).args(&args).spawn()?)
 }
 
 fn watch(
