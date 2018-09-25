@@ -50,6 +50,6 @@ exporting the env variable `REBAZEL_DEBOUNCE_DELAY`.
 `rebazel` uses a configurable level of logging though the env variable `RUST_LOG`, specified by then [env_log](https://doc.rust-lang.org/log/env_logger/#enabling-logging) crate. By default its set to `info` but you may wish to set it to `debug`
 to see exactly which files will be watched for a given run.
 
-> 💡 If you attempt to watch a large very directory tree of files rebazel may print the error `No space left on device (os error 28)` and exits. [Here's a summary if what that means and how to address it](https://github.com/passcod/cargo-watch/blob/master/README.md)
+> 💡 If you attempt to watch a large very directory tree of files rebazel may print the error `No space left on device (os error 28)` and exits. [Here's a summary if what that means and how to address it](https://blog.passcod.name/2017/jun/25/inotify-watch-limit)
 
 Meetup 2017
