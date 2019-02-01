@@ -197,7 +197,6 @@ fn app() -> Result<()> {
 
 fn main() {
     if let Err(_) = env::var("RUST_LOG") {
-        println!("setting default");
         env::set_var("RUST_LOG", "info");
     }
     pretty_env_logger::init();
