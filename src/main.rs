@@ -9,7 +9,7 @@ use notify::{RecommendedWatcher, Watcher, RecursiveMode};
 use notify::DebouncedEvent::{Write, Remove, Rename};
 use std::env;
 use std::path::PathBuf;
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::sync::mpsc::channel;
 use std::time::Duration;
 
@@ -101,7 +101,7 @@ fn builds(executable: &String, target: &String) -> Result<Vec<String>> {
 }
 
 fn exec(executable: &String, action: &String, args: Vec<String>) -> Result<Child> {
-    Ok(Command::new(executable).arg(action).args(&args).spawn()?)
+    Ok(Command::new(executable).arg(action).args(&args).stdout(Stdio::inherit()).stderr(Stdio::inherit()).spawn()?)
 }
 
 fn watch(
@@ -197,16 +197,16 @@ fn app() -> Result<()> {
 
 fn main() {
     if let Err(_) = env::var("RUST_LOG") {
+        println!("setting default");
         env::set_var("RUST_LOG", "info");
     }
-    pretty_env_logger::init().unwrap();
+    pretty_env_logger::init();
     if let Err(ref e) = run() {
         use std::io::Write;
-        use error_chain::ChainedError; // trait which holds `display`
         let stderr = &mut ::std::io::stderr();
         let errmsg = "Error writing to stderr";
 
-        writeln!(stderr, "{}", e.display()).expect(errmsg);
+        writeln!(stderr, "{}", e).expect(errmsg);
         ::std::process::exit(1);
     }
 }
