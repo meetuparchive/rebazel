@@ -504,7 +504,7 @@ dependencies = [
 
 [[package]]
 name = "rebazel"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "error-chain 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
