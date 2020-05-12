@@ -1,0 +1,8 @@
+version: 1
+
+# update_schedule: live is only supported on javascript, ruby:bundler, python, php:composer, dotnet:nuget, rust:cargo, elixir:hex
+
+update_configs:
+  - package_manager: "rust:cargo"
+    directory: "/"
+    update_schedule: "live"
