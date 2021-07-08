@@ -72,6 +72,7 @@ fn buildfile(path: PathBuf) -> bool {
 fn query(executable: &String, q: String) -> Result<Vec<String>> {
     let query = Command::new(executable)
         .arg("query")
+        .arg("--keep_going")
         .arg(q)
         .output()
         .unwrap();
