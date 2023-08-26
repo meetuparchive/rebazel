@@ -44,7 +44,7 @@ fn tools_default(path: &str) -> bool {
 
 #[inline]
 fn external_workspace(path: &str) -> bool {
-    path.starts_with("@")
+    path.starts_with('@')
 }
 
 #[inline]
@@ -54,9 +54,9 @@ fn aliased(path: &str) -> bool {
 
 #[inline]
 fn clean_path(path: &str) -> String {
-    path.trim_left_matches("//:")
-        .trim_left_matches("//")
-        .replace(":", "/")
+    path.trim_start_matches("//:")
+        .trim_start_matches("//")
+        .replace(':', "/")
 }
 
 #[inline]
@@ -66,7 +66,7 @@ fn watchable(path: &str) -> bool {
 
 #[inline]
 fn buildfile(path: PathBuf) -> bool {
-    path.ends_with("BUILD") || path.extension().iter().find(|ext| **ext == "bzl").is_some()
+    path.ends_with("BUILD") || path.extension().iter().any(|ext| *ext == "bzl")
 }
 
 fn query(executable: &String, q: String) -> Result<Vec<String>> {
@@ -110,11 +110,11 @@ fn watch(
     watcher: &mut RecommendedWatcher,
 ) -> Result<()> {
     for target in targets {
-        for file in sources(&executable, &target)? {
+        for file in sources(executable, target)? {
             debug!("watching source file: {file}", file = file);
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
-        for file in builds(&executable, &target)? {
+        for file in builds(executable, target)? {
             debug!("watching build file: {file}", file = file);
             watcher.watch(file, RecursiveMode::NonRecursive)?;
         }
@@ -165,7 +165,7 @@ fn app() -> Result<()> {
     let args = env::args().skip(2).collect::<Vec<_>>();
     let targets = args.iter()
                  // skip flags
-                .skip_while(|arg| arg.starts_with("-"))
+                .skip_while(|arg| arg.starts_with('-'))
         .collect::<Vec<_>>();
     if targets.is_empty() {
         return Err(ErrorKind::MissingTargets.into());
@@ -185,7 +185,7 @@ fn app() -> Result<()> {
                             watch(&executable, targets.clone(), &mut watcher)?
                         }
                         child = exec(&executable, &action, args.clone())?;
-                        ()
+                        
                     }
                     _ => (),
                 }
@@ -196,7 +196,7 @@ fn app() -> Result<()> {
 }
 
 fn main() {
-    if let Err(_) = env::var("RUST_LOG") {
+    if env::var("RUST_LOG").is_err() {
         env::set_var("RUST_LOG", "info");
     }
     pretty_env_logger::init();
