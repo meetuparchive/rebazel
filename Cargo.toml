@@ -7,4 +7,4 @@ authors = ["softprops <d.tangren@gmail.com>"]
 error-chain = "0.12.4"
 log = "0.4.20"
 notify = "4.0"
-pretty_env_logger = "0.3"
+pretty_env_logger = "0.5.0"
