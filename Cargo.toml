@@ -4,7 +4,7 @@ version = "0.1.4"
 authors = ["softprops <d.tangren@gmail.com>"]
 
 [dependencies]
-error-chain = "0.12"
+error-chain = "0.12.4"
 log = "0.4.20"
 notify = "4.0"
 pretty_env_logger = "0.3"
