@@ -1,6 +1,6 @@
 # rebazel
 
-[![Build Status](https://travis-ci.com/meetup/rebazel.svg?branch=master)](https://travis-ci.com/meetup/rebazel)
+[![main](https://github.com/meetup/rebazel/actions/workflows/main.yml/badge.svg)](https://github.com/meetup/rebazel/actions/workflows/main.yml)
 
 > a tool for expediting [bazel build](https://bazel.build/) workflows
 
